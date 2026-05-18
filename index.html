@@ -453,7 +453,7 @@ function renderTableau() {
     const n = cards.length;
 
     // Compute overlap
-    let overlap = 0.28; // fraction of card height showing
+    let overlap = 0.45; // fraction of card height showing
     if (n > 1) {
       const needed = cardHeight + (n - 1) * overlap * cardHeight;
       if (needed > maxStackHeight) {
