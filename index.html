@@ -374,6 +374,29 @@ function checkWin() {
   return foundations.every((f, i) => f && f.rank === 'K');
 }
 
+const SAVE_KEY = 'freecell_save';
+
+function persistState() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify({
+    freecells, foundations, foundationSuits, tableau, history
+  }));
+}
+
+function loadPersistedState() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    freecells = s.freecells;
+    foundations = s.foundations;
+    foundationSuits = s.foundationSuits;
+    tableau = s.tableau;
+    history = s.history || [];
+    document.getElementById('undo-btn').disabled = history.length === 0;
+    return true;
+  } catch { return false; }
+}
+
 // UI
 function render() {
   renderTopRow();
@@ -381,6 +404,9 @@ function render() {
   if (checkWin()) {
     showMessage('You win!');
     gameWon = true;
+    localStorage.removeItem(SAVE_KEY);
+  } else {
+    persistState();
   }
 }
 
@@ -689,7 +715,11 @@ function startGame() {
   render();
 }
 
-startGame();
+if (!loadPersistedState()) {
+  startGame();
+} else {
+  render();
+}
 </script>
 </body>
 </html>
