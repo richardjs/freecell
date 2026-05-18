@@ -677,28 +677,11 @@ document.getElementById('message-btn').addEventListener('click', () => {
 
 document.getElementById('undo-btn').addEventListener('click', undo);
 
-let newGamePending = false;
-let newGameTimer = null;
 document.getElementById('new-game-btn').addEventListener('click', () => {
-  if (newGamePending) {
-    clearTimeout(newGameTimer);
-    newGamePending = false;
-    document.getElementById('new-game-btn').textContent = 'New';
-    startGame();
-  } else {
-    newGamePending = true;
-    document.getElementById('new-game-btn').textContent = 'Sure?';
-    newGameTimer = setTimeout(() => {
-      newGamePending = false;
-      document.getElementById('new-game-btn').textContent = 'New';
-    }, 2500);
-  }
+  if (confirm('Start a new game?')) startGame();
 });
 
 function startGame() {
-  clearTimeout(newGameTimer);
-  newGamePending = false;
-  document.getElementById('new-game-btn').textContent = 'New';
   history = [];
   document.getElementById('undo-btn').disabled = true;
   deal();
