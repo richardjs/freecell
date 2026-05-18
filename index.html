@@ -35,7 +35,7 @@
     text-transform: uppercase;
   }
 
-  #new-game-btn {
+  #new-game-btn, #undo-btn {
     background: none;
     border: 1px solid #444;
     color: #888;
@@ -47,7 +47,8 @@
     text-transform: uppercase;
   }
 
-  #new-game-btn:active { background: #333; }
+  #new-game-btn:active, #undo-btn:active { background: #333; }
+  #undo-btn:disabled { opacity: 0.3; cursor: default; }
 
   #board {
     flex: 1;
@@ -183,7 +184,10 @@
 
 <div id="header">
   <h1>FreeCell</h1>
-  <button id="new-game-btn">New</button>
+  <div style="display:flex;gap:8px;">
+    <button id="undo-btn" disabled>Undo</button>
+    <button id="new-game-btn">New</button>
+  </div>
 </div>
 
 <div id="board">
@@ -206,11 +210,35 @@ function rankIndex(rank) { return RANKS.indexOf(rank); }
 
 // Game state
 let freecells = [null, null, null, null];
-let foundations = [null, null, null, null]; // top card of each foundation pile (by suit order)
+let foundations = [null, null, null, null];
 let foundationSuits = [null, null, null, null];
 let tableau = Array.from({length: 8}, () => []);
 let selected = null; // {zone: 'free'|'found'|'tab', index, cards}
 let gameWon = false;
+let history = []; // stack of snapshots for undo
+
+function saveState() {
+  history.push({
+    freecells: freecells.map(c => c ? {...c} : null),
+    foundations: foundations.map(c => c ? {...c} : null),
+    foundationSuits: [...foundationSuits],
+    tableau: tableau.map(col => col.map(c => ({...c}))),
+  });
+  document.getElementById('undo-btn').disabled = false;
+}
+
+function undo() {
+  if (!history.length) return;
+  const s = history.pop();
+  freecells = s.freecells;
+  foundations = s.foundations;
+  foundationSuits = s.foundationSuits;
+  tableau = s.tableau;
+  selected = null;
+  gameWon = false;
+  document.getElementById('undo-btn').disabled = history.length === 0;
+  render();
+}
 
 function createDeck() {
   const deck = [];
@@ -506,6 +534,7 @@ function handleFreecellClick(i) {
     // Try to move selected to freecell i
     if (freecells[i] === null && selected.cards.length === 1) {
       const card = selected.cards[0];
+      saveState();
       if (selected.zone === 'free') {
         freecells[selected.index] = null;
       } else if (selected.zone === 'tab') {
@@ -541,6 +570,7 @@ function handleFoundationClick(i) {
 
   const card = selected.cards[0];
   if (selected.cards.length === 1 && canPlaceOnFoundation(card)) {
+    saveState();
     if (selected.zone === 'free') freecells[selected.index] = null;
     else if (selected.zone === 'tab') tableau[selected.index].pop();
     placeOnFoundation(card);
@@ -592,7 +622,7 @@ function handleTableauClick(t, c) {
     }
 
     if (canMove) {
-      // Execute move
+      saveState();
       if (selected.zone === 'free') {
         freecells[selected.index] = null;
       } else if (selected.zone === 'tab') {
@@ -645,9 +675,12 @@ document.getElementById('message-btn').addEventListener('click', () => {
   startGame();
 });
 
+document.getElementById('undo-btn').addEventListener('click', undo);
 document.getElementById('new-game-btn').addEventListener('click', startGame);
 
 function startGame() {
+  history = [];
+  document.getElementById('undo-btn').disabled = true;
   deal();
   autoFoundation();
   render();
