@@ -713,7 +713,7 @@ document.getElementById('retry-btn').addEventListener('click', () => {
 });
 
 document.getElementById('new-game-btn').addEventListener('click', () => {
-  if (confirm('Start a new game?')) startGame();
+  if (confirm('Start a new game? (' + completedGames.size + ' solved)')) startGame();
 });
 
 // Microsoft FreeCell shuffle — matches the classic Windows implementation.
