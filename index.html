@@ -718,7 +718,7 @@ document.getElementById('message-btn').addEventListener('click', () => {
 document.getElementById('undo-btn').addEventListener('click', undo);
 
 document.getElementById('reset-btn').addEventListener('click', () => {
-  if (confirm('Reset this hand?')) dealMicrosoftGame(currentGameNumber);
+  if (confirm('Reset hand #' + currentGameNumber + '?')) dealMicrosoftGame(currentGameNumber);
 });
 
 document.getElementById('retry-btn').addEventListener('click', () => {
