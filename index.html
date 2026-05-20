@@ -35,7 +35,7 @@
     text-transform: uppercase;
   }
 
-  #new-game-btn, #undo-btn, #reset-btn {
+  #new-game-btn, #undo-btn, #reset-btn, #retry-btn {
     background: none;
     border: 1px solid #444;
     color: #888;
@@ -47,7 +47,8 @@
     text-transform: uppercase;
   }
 
-  #new-game-btn:active, #undo-btn:active, #reset-btn:active { background: #333; }
+  #new-game-btn:active, #undo-btn:active, #reset-btn:active, #retry-btn:active { background: #333; }
+  #retry-btn:disabled { opacity: 0.3; cursor: default; }
   #undo-btn:disabled { opacity: 0.3; cursor: default; }
 
   #game-num {
@@ -194,6 +195,7 @@
     <span id="game-num"></span>
     <button id="undo-btn" disabled>Undo</button>
     <button id="reset-btn">Reset</button>
+    <button id="retry-btn" disabled>Retry (0)</button>
     <button id="new-game-btn">New</button>
   </div>
 </div>
@@ -400,12 +402,24 @@ function loadPersistedState() {
   } catch { return false; }
 }
 
+function unsolvedGames() {
+  return [...playedGames].filter(n => !completedGames.has(n) && n !== currentGameNumber);
+}
+
+function updateRetryBtn() {
+  const unsolved = unsolvedGames();
+  const btn = document.getElementById('retry-btn');
+  btn.textContent = 'Retry (' + unsolved.length + ')';
+  btn.disabled = unsolved.length === 0;
+}
+
 // UI
 function render() {
   renderTopRow();
   renderTableau();
   document.getElementById('game-num').textContent =
     currentGameNumber ? '#' + currentGameNumber : '';
+  updateRetryBtn();
   if (checkWin()) {
     if (currentGameNumber) {
       completedGames.add(currentGameNumber);
@@ -717,6 +731,13 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   if (confirm('Reset this hand?')) dealMicrosoftGame(currentGameNumber);
 });
 
+document.getElementById('retry-btn').addEventListener('click', () => {
+  const unsolved = unsolvedGames();
+  if (!unsolved.length) return;
+  const n = unsolved[Math.floor(Math.random() * unsolved.length)];
+  dealMicrosoftGame(n);
+});
+
 document.getElementById('new-game-btn').addEventListener('click', () => {
   if (confirm('Start a new game?')) startGame();
 });
@@ -769,6 +790,7 @@ function startGame() {
 }
 
 loadTracking();
+updateRetryBtn();
 if (!loadPersistedState()) {
   startGame();
 } else {
