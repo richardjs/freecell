@@ -764,10 +764,10 @@ if (!loadPersistedState()) {
 }
 
 // Intercept the browser back button as undo
-history.pushState(null, '');
+window.history.pushState(null, '');
 window.addEventListener('popstate', () => {
   undo();
-  history.pushState(null, '');
+  window.history.pushState(null, '');
 });
 </script>
 </body>
