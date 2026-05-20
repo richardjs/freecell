@@ -734,6 +734,7 @@ document.getElementById('reset-btn').addEventListener('click', () => {
 document.getElementById('retry-btn').addEventListener('click', () => {
   const unsolved = unsolvedGames();
   if (!unsolved.length) return;
+  if (!confirm('Deal an unsolved hand?')) return;
   const n = unsolved[Math.floor(Math.random() * unsolved.length)];
   dealMicrosoftGame(n);
 });
