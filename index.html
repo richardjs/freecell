@@ -195,7 +195,7 @@
     <span id="game-num"></span>
     <button id="undo-btn" disabled>Undo</button>
     <button id="reset-btn">Reset</button>
-    <button id="retry-btn" disabled>Retry (0)</button>
+    <button id="retry-btn" disabled>Retry</button>
     <button id="new-game-btn">New</button>
   </div>
 </div>
@@ -409,7 +409,6 @@ function unsolvedGames() {
 function updateRetryBtn() {
   const unsolved = unsolvedGames();
   const btn = document.getElementById('retry-btn');
-  btn.textContent = 'Retry (' + unsolved.length + ')';
   btn.disabled = unsolved.length === 0;
 }
 
@@ -734,7 +733,7 @@ document.getElementById('reset-btn').addEventListener('click', () => {
 document.getElementById('retry-btn').addEventListener('click', () => {
   const unsolved = unsolvedGames();
   if (!unsolved.length) return;
-  if (!confirm('Deal an unsolved hand?')) return;
+  if (!confirm('Deal an unsolved hand? (' + unsolved.length + ' remaining)')) return;
   const n = unsolved[Math.floor(Math.random() * unsolved.length)];
   dealMicrosoftGame(n);
 });
