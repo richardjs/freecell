@@ -35,7 +35,7 @@
     text-transform: uppercase;
   }
 
-  #new-game-btn, #undo-btn, #deal-btn {
+  #new-game-btn, #undo-btn {
     background: none;
     border: 1px solid #444;
     color: #888;
@@ -47,8 +47,14 @@
     text-transform: uppercase;
   }
 
-  #new-game-btn:active, #undo-btn:active, #deal-btn:active { background: #333; }
+  #new-game-btn:active, #undo-btn:active { background: #333; }
   #undo-btn:disabled { opacity: 0.3; cursor: default; }
+
+  #game-num {
+    font-size: 12px;
+    color: #555;
+    letter-spacing: 1px;
+  }
 
   #board {
     flex: 1;
@@ -184,9 +190,9 @@
 
 <div id="header">
   <h1>FreeCell</h1>
-  <div style="display:flex;gap:8px;">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span id="game-num"></span>
     <button id="undo-btn" disabled>Undo</button>
-    <button id="deal-btn">#</button>
     <button id="new-game-btn">New</button>
   </div>
 </div>
@@ -217,6 +223,30 @@ let tableau = Array.from({length: 8}, () => []);
 let selected = null; // {zone: 'free'|'found'|'tab', index, cards}
 let gameWon = false;
 let history = []; // stack of snapshots for undo
+let currentGameNumber = null;
+
+// Completion tracking (persisted separately from in-progress game state)
+let completedGames = new Set();
+let playedGames = new Set();
+
+const TRACKING_KEY = 'freecell_tracking';
+
+function loadTracking() {
+  try {
+    const raw = localStorage.getItem(TRACKING_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    completedGames = new Set(data.completed || []);
+    playedGames = new Set(data.played || []);
+  } catch {}
+}
+
+function saveTracking() {
+  localStorage.setItem(TRACKING_KEY, JSON.stringify({
+    completed: [...completedGames],
+    played: [...playedGames],
+  }));
+}
 
 function saveState() {
   history.push({
@@ -239,36 +269,6 @@ function undo() {
   gameWon = false;
   document.getElementById('undo-btn').disabled = history.length === 0;
   render();
-}
-
-function createDeck() {
-  const deck = [];
-  for (const suit of SUITS) {
-    for (const rank of RANKS) {
-      deck.push({rank, suit, color: isRed(suit) ? 'red' : 'black'});
-    }
-  }
-  return deck;
-}
-
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-function deal() {
-  freecells = [null, null, null, null];
-  foundations = [null, null, null, null];
-  foundationSuits = [null, null, null, null];
-  tableau = Array.from({length: 8}, () => []);
-  selected = null;
-  gameWon = false;
-
-  const deck = shuffle(createDeck());
-  deck.forEach((card, i) => tableau[i % 8].push(card));
 }
 
 // Foundation helpers
@@ -379,7 +379,7 @@ const SAVE_KEY = 'freecell_save';
 
 function persistState() {
   localStorage.setItem(SAVE_KEY, JSON.stringify({
-    freecells, foundations, foundationSuits, tableau, history
+    freecells, foundations, foundationSuits, tableau, history, currentGameNumber
   }));
 }
 
@@ -393,6 +393,7 @@ function loadPersistedState() {
     foundationSuits = s.foundationSuits;
     tableau = s.tableau;
     history = s.history || [];
+    currentGameNumber = s.currentGameNumber || null;
     document.getElementById('undo-btn').disabled = history.length === 0;
     return true;
   } catch { return false; }
@@ -402,7 +403,14 @@ function loadPersistedState() {
 function render() {
   renderTopRow();
   renderTableau();
+  document.getElementById('game-num').textContent =
+    currentGameNumber ? '#' + currentGameNumber : '';
   if (checkWin()) {
+    if (currentGameNumber) {
+      completedGames.add(currentGameNumber);
+      playedGames.add(currentGameNumber);
+      saveTracking();
+    }
     showMessage('You win!');
     gameWon = true;
     localStorage.removeItem(SAVE_KEY);
@@ -704,14 +712,6 @@ document.getElementById('message-btn').addEventListener('click', () => {
 
 document.getElementById('undo-btn').addEventListener('click', undo);
 
-document.getElementById('deal-btn').addEventListener('click', () => {
-  const input = prompt('Enter game number (1–1000000):');
-  if (input === null) return;
-  const n = parseInt(input, 10);
-  if (!Number.isInteger(n) || n < 1) { alert('Invalid game number.'); return; }
-  dealMicrosoftGame(n);
-});
-
 document.getElementById('new-game-btn').addEventListener('click', () => {
   if (confirm('Start a new game?')) startGame();
 });
@@ -719,6 +719,10 @@ document.getElementById('new-game-btn').addEventListener('click', () => {
 // Microsoft FreeCell shuffle — matches the classic Windows implementation.
 // Uses a 32-bit LCG seeded with the game number; deck is dealt column by column.
 function dealMicrosoftGame(seed) {
+  currentGameNumber = seed;
+  playedGames.add(seed);
+  saveTracking();
+
   const MS_SUITS = ['♣', '♦', '♥', '♠']; // index matches card % 4
   let state = seed | 0;
   function nextRand() {
@@ -755,13 +759,11 @@ function dealMicrosoftGame(seed) {
 }
 
 function startGame() {
-  history = [];
-  document.getElementById('undo-btn').disabled = true;
-  deal();
-  autoFoundation();
-  render();
+  const n = Math.floor(Math.random() * 1000000) + 1;
+  dealMicrosoftGame(n);
 }
 
+loadTracking();
 if (!loadPersistedState()) {
   startGame();
 } else {
