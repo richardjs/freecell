@@ -128,13 +128,13 @@
   }
 
   .card-rank {
-    font-size: clamp(10px, 2.5vw, 16px);
+    font-size: clamp(12px, 3.2vw, 20px);
     font-weight: 600;
     line-height: 1;
   }
 
   .card-suit {
-    font-size: clamp(9px, 2vw, 13px);
+    font-size: clamp(11px, 2.6vw, 17px);
     line-height: 1;
     margin-top: 1px;
   }
@@ -144,7 +144,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: clamp(14px, 3.5vw, 22px);
+    font-size: clamp(16px, 4.5vw, 28px);
     opacity: 0.3;
   }
 
@@ -521,7 +521,7 @@ function renderTableau() {
     const n = cards.length;
 
     // Compute overlap
-    let overlap = 0.45; // fraction of card height showing
+    let overlap = 0.6; // fraction of card height showing
     if (n > 1) {
       const needed = cardHeight + (n - 1) * overlap * cardHeight;
       if (needed > maxStackHeight) {
