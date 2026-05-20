@@ -465,9 +465,6 @@ function renderTopRow() {
       el.addEventListener('click', () => handleFreecellClick(i));
       cell.appendChild(el);
     } else {
-      // Empty freecell - can receive if something selected
-      const isTarget = selected && selected.cards.length === 1;
-      if (isTarget) cell.classList.add('highlight');
       cell.addEventListener('click', () => handleFreecellClick(i));
     }
     row.appendChild(cell);
