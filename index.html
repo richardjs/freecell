@@ -35,7 +35,7 @@
     text-transform: uppercase;
   }
 
-  #new-game-btn, #undo-btn {
+  #new-game-btn, #undo-btn, #reset-btn {
     background: none;
     border: 1px solid #444;
     color: #888;
@@ -47,7 +47,7 @@
     text-transform: uppercase;
   }
 
-  #new-game-btn:active, #undo-btn:active { background: #333; }
+  #new-game-btn:active, #undo-btn:active, #reset-btn:active { background: #333; }
   #undo-btn:disabled { opacity: 0.3; cursor: default; }
 
   #game-num {
@@ -193,6 +193,7 @@
   <div style="display:flex;align-items:center;gap:8px;">
     <span id="game-num"></span>
     <button id="undo-btn" disabled>Undo</button>
+    <button id="reset-btn">Reset</button>
     <button id="new-game-btn">New</button>
   </div>
 </div>
@@ -711,6 +712,10 @@ document.getElementById('message-btn').addEventListener('click', () => {
 });
 
 document.getElementById('undo-btn').addEventListener('click', undo);
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (confirm('Reset this hand?')) dealMicrosoftGame(currentGameNumber);
+});
 
 document.getElementById('new-game-btn').addEventListener('click', () => {
   if (confirm('Start a new game?')) startGame();
