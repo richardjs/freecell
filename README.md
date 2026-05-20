@@ -2,6 +2,8 @@
 
 A single-file static HTML FreeCell card game for mobile browsers. No dependencies, no build step — just open `index.html`.
 
+**Play it at [richardjs.github.io/freecell](https://richardjs.github.io/freecell)**
+
 Uses tap-to-move rather than drag-and-drop.
 
 ---
