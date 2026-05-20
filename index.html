@@ -51,12 +51,6 @@
   #retry-btn:disabled { opacity: 0.3; cursor: default; }
   #undo-btn:disabled { opacity: 0.3; cursor: default; }
 
-  #game-num {
-    font-size: 12px;
-    color: #555;
-    letter-spacing: 1px;
-  }
-
   #board {
     flex: 1;
     display: flex;
@@ -192,8 +186,7 @@
 <div id="header">
   <h1>FreeCell</h1>
   <div style="display:flex;align-items:center;gap:8px;">
-    <span id="game-num"></span>
-    <button id="undo-btn" disabled>Undo</button>
+<button id="undo-btn" disabled>Undo</button>
     <button id="reset-btn">Reset</button>
     <button id="retry-btn" disabled>Retry</button>
     <button id="new-game-btn">New</button>
@@ -416,8 +409,6 @@ function updateRetryBtn() {
 function render() {
   renderTopRow();
   renderTableau();
-  document.getElementById('game-num').textContent =
-    currentGameNumber ? '#' + currentGameNumber : '';
   updateRetryBtn();
   if (checkWin()) {
     if (currentGameNumber) {
