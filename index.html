@@ -35,7 +35,7 @@
     text-transform: uppercase;
   }
 
-  #new-game-btn, #undo-btn, #reset-btn, #retry-btn {
+  #new-game-btn, #reset-btn, #retry-btn {
     background: none;
     border: 1px solid #444;
     color: #888;
@@ -47,9 +47,8 @@
     text-transform: uppercase;
   }
 
-  #new-game-btn:active, #undo-btn:active, #reset-btn:active, #retry-btn:active { background: #333; }
+  #new-game-btn:active, #reset-btn:active, #retry-btn:active { background: #333; }
   #retry-btn:disabled { opacity: 0.3; cursor: default; }
-  #undo-btn:disabled { opacity: 0.3; cursor: default; }
 
   #board {
     flex: 1;
@@ -177,7 +176,6 @@
 <div id="header">
   <h1>FreeCell</h1>
   <div style="display:flex;align-items:center;gap:8px;">
-<button id="undo-btn" disabled>Undo</button>
     <button id="reset-btn">Reset</button>
     <button id="retry-btn" disabled>Retry</button>
     <button id="new-game-btn">New</button>
@@ -242,7 +240,6 @@ function saveState() {
     foundationSuits: [...foundationSuits],
     tableau: tableau.map(col => col.map(c => ({...c}))),
   });
-  document.getElementById('undo-btn').disabled = false;
 }
 
 function undo() {
@@ -254,7 +251,6 @@ function undo() {
   tableau = s.tableau;
   selected = null;
   gameWon = false;
-  document.getElementById('undo-btn').disabled = history.length === 0;
   render();
 }
 
@@ -381,7 +377,6 @@ function loadPersistedState() {
     tableau = s.tableau;
     history = s.history || [];
     currentGameNumber = s.currentGameNumber || null;
-    document.getElementById('undo-btn').disabled = history.length === 0;
     return true;
   } catch { return false; }
 }
@@ -698,8 +693,6 @@ document.getElementById('message-btn').addEventListener('click', () => {
   startGame();
 });
 
-document.getElementById('undo-btn').addEventListener('click', undo);
-
 document.getElementById('reset-btn').addEventListener('click', () => {
   if (confirm('Reset hand #' + currentGameNumber + '?')) dealMicrosoftGame(currentGameNumber);
 });
@@ -753,7 +746,6 @@ function dealMicrosoftGame(seed) {
   for (let t = 0; t < 8; t++) tableau[t].reverse();
 
   history = [];
-  document.getElementById('undo-btn').disabled = true;
   autoFoundation();
   render();
 }
@@ -770,6 +762,13 @@ if (!loadPersistedState()) {
 } else {
   render();
 }
+
+// Intercept the browser back button as undo
+history.pushState(null, '');
+window.addEventListener('popstate', () => {
+  undo();
+  history.pushState(null, '');
+});
 </script>
 </body>
 </html>
