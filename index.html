@@ -744,6 +744,9 @@ function dealMicrosoftGame(seed) {
     const rank = RANKS[deck[i] >> 2];
     tableau[i % 8].push({rank, suit, color: isRed(suit) ? 'red' : 'black'});
   }
+  // deck[0] is the accessible (top-of-stack) card for col 0 in the MS convention,
+  // but push() put it at index 0 (buried end). Reverse so it sits at the accessible end.
+  for (let t = 0; t < 8; t++) tableau[t].reverse();
 
   history = [];
   document.getElementById('undo-btn').disabled = true;
