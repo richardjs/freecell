@@ -35,7 +35,7 @@
     text-transform: uppercase;
   }
 
-  #new-game-btn, #undo-btn {
+  #new-game-btn, #undo-btn, #deal-btn {
     background: none;
     border: 1px solid #444;
     color: #888;
@@ -47,7 +47,7 @@
     text-transform: uppercase;
   }
 
-  #new-game-btn:active, #undo-btn:active { background: #333; }
+  #new-game-btn:active, #undo-btn:active, #deal-btn:active { background: #333; }
   #undo-btn:disabled { opacity: 0.3; cursor: default; }
 
   #board {
@@ -186,6 +186,7 @@
   <h1>FreeCell</h1>
   <div style="display:flex;gap:8px;">
     <button id="undo-btn" disabled>Undo</button>
+    <button id="deal-btn">#</button>
     <button id="new-game-btn">New</button>
   </div>
 </div>
@@ -703,9 +704,52 @@ document.getElementById('message-btn').addEventListener('click', () => {
 
 document.getElementById('undo-btn').addEventListener('click', undo);
 
+document.getElementById('deal-btn').addEventListener('click', () => {
+  const input = prompt('Enter game number (1–1000000):');
+  if (input === null) return;
+  const n = parseInt(input, 10);
+  if (!Number.isInteger(n) || n < 1) { alert('Invalid game number.'); return; }
+  dealMicrosoftGame(n);
+});
+
 document.getElementById('new-game-btn').addEventListener('click', () => {
   if (confirm('Start a new game?')) startGame();
 });
+
+// Microsoft FreeCell shuffle — matches the classic Windows implementation.
+// Uses a 32-bit LCG seeded with the game number; deck is dealt column by column.
+function dealMicrosoftGame(seed) {
+  const MS_SUITS = ['♣', '♦', '♥', '♠']; // index matches card % 4
+  let state = seed | 0;
+  function nextRand() {
+    state = (Math.imul(state, 214013) + 2531011) | 0;
+    return (state >>> 16) & 0x7fff;
+  }
+
+  const deck = Array.from({length: 52}, (_, i) => i);
+  for (let i = 51; i >= 0; i--) {
+    const j = nextRand() % (i + 1);
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+
+  freecells = [null, null, null, null];
+  foundations = [null, null, null, null];
+  foundationSuits = [null, null, null, null];
+  tableau = Array.from({length: 8}, () => []);
+  selected = null;
+  gameWon = false;
+
+  for (let i = 0; i < 52; i++) {
+    const suit = MS_SUITS[deck[i] % 4];
+    const rank = RANKS[deck[i] >> 2];
+    tableau[i % 8].push({rank, suit, color: isRed(suit) ? 'red' : 'black'});
+  }
+
+  history = [];
+  document.getElementById('undo-btn').disabled = true;
+  autoFoundation();
+  render();
+}
 
 function startGame() {
   history = [];
